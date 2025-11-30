@@ -1,5 +1,10 @@
 ---
-title: "Report"
-output: html_document
+title: "STA 322 Project 2"
+author: "Alayna Binder & Katherine Zhong"
+date: "2025-11-30"
+output: 
+  bookdown::pdf_document2:
+    number_sections: true
+    toc: false
 ---
 
