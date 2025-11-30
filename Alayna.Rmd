@@ -1,0 +1,37 @@
+---
+title: "Alayna"
+output: html_document
+---
+
+```{r}
+
+combinations <- c("(1)", "a", "b", "c", "d", "ab", "ac", "ad", "bc", "cd", "bd",
+                  "abc", "abd", "acd", "bcd", "abcd")
+```
+
+```{r}
+library(tidyverse)
+
+set.seed(322) 
+
+sample(combinations)
+```
+
+```{r}
+thrower <- c("ab", "kz", "ab", "ab", "kz", "kz")
+```
+
+```{r}
+results <- map_df(1:16, ~{
+  set.seed(.x)
+  tibble(
+    seed = .x,
+    order = list(sample(thrower))
+  )
+})
+
+results
+```
+
+
+
