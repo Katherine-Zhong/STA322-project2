@@ -6,17 +6,19 @@ output:
   bookdown::pdf_document2:
     number_sections: true
     toc: false
+header-includes:
+  - \usepackage{float}
 ---
 
 # Experimental Design
 
-We conducted a full $2^4$ factorial experiment using all sixteen combinations of the four helicopter design factors A, B, C, and D. A factorial structure provides the most information per trial because it allows us to estimate main effects and interactions simultaneously, and it avoids the inefficiency of changing only one factor at a time. For each design combination, we collected four replicate flights. This level of replication follows the project guidance and provides reasonable accuracy for our effect estimates while keeping the workload manageable.
+We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A, B, C, and D. A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time. We collected four replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
 
-To prevent ordering effects from influencing the results, we randomized the flight order before collecting any data. Randomizing the sequence of the sixteen design combinations ensured that no configuration was consistently flown earlier or later in the session. After determining the order of combinations, we also randomized the assignment of each flight to a thrower. Both throwers contributed flights across all sixteen combinations, creating a balanced structure in which every design was flown by both people. Throughout data collection, each thrower made a conscious effort to drop the helicopter the same way every time by maintaining a consistent release height, orientation, and motion. We tried to minimize variability wherever possible so that observed differences in flight time would reflect the design factors rather than differences in technique.
+To reduce the possibility of ordering effects, we randomized the sequence of the sixteen design combinations before beginning data collection. After establishing this order, we also randomized which thrower completed each drop. Both throwers aimed to release the helicopters in a consistent manner, and random assignment ensures that any natural differences in release technique were distributed evenly across all treatments.
 
-We blocked on thrower because the person releasing the helicopter can influence flight time independently of the design. Blocking allows us to treat the thrower as a nuisance factor that is controlled for rather than ignored. Differences in release style, timing, or consistency can introduce extra variability if they are not accounted for, and including thrower as a block directly models these differences. Since both throwers completed flights for every design combination, the block structure is balanced and contributes to more precise estimates of the factor effects.
+We treated thrower as a blocking variable. Although using a single thrower would theoretically eliminate person-to-person variation, it would also require one individual to perform all 64 drops. That workload increases the likelihood of fatigue or gradual shifts in release technique, which can introduce time-related variability that is difficult to control. We judged this within-person drift to be a greater risk than the small, consistent differences that might exist between two people. Because both project members were involved in data collection, blocking was the appropriate design choice. By structuring the experiment so that each thrower completed drops for every design combination, we created a fully crossed block that allowed us to account for person-specific differences directly and improve the precision of the estimated factor effects.
 
-All flights were completed in one session. Although repeated measurements within a session may raise concerns about fatigue or small changes in technique, the total number of throws per person was modest. Any minor shifts in performance would be spread throughout the experiment because of the randomization, rather than concentrated in specific design conditions. For this reason, and because we observed no systematic drift in the flight times, we assumed that any within-session variation was minimal.
+All drops were completed within a single session. While some within-session variation is possible, the number of drops per person was modest after splitting the workload, and the randomized allocation of treatments ensures that any minor temporal changes did not align with specific factor levels. We did not observe systematic shifts in flight time over the course of the session, so we treated within-session variation as negligible.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 #| label: load-packages
@@ -54,9 +56,11 @@ df <- data |>
 
 # Analysis
 
-To identify which design factors influence flight time, we first examined the distributions of flight times across the two levels of each factor. The main effect boxplots show a clear upward shift for factor A, with level 1 producing noticeably longer flights than level 0. Factor D shows the opposite pattern, with shorter flights at level 1. In contrast, factors B and C display only small differences between levels, and the variation within each level is larger than any apparent shift between them.
+## Question 1
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, fig.width = 7, fig.height = 3, fig.pos = "H"}
+To identify which design factors influence flight time, we first examined the distributions of flight times across the two levels of each factor. The main effect boxplots below show a clear upward shift for factor A, with level 1 producing noticeably longer flights than level 0. Factor D shows the opposite pattern, with shorter flights at level 1. In contrast, factors B and C display only small differences between levels, and the variation within each level is larger than any apparent shift between them.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, fig.width = 7, fig.height = 3}
 #| label: main-effects
 
 main_effect_summaries <- df |>
@@ -84,9 +88,9 @@ df |>
   )
 ```
 
-We then formalized these patterns using a linear model that included all four design factors while blocking on thrower. The estimated effects and confidence intervals are shown in Table 1. Factor A had a positive and statistically significant effect, increasing the mean flight time by about 0.22 seconds. Factor D had a negative and significant effect, decreasing the mean flight time by about 0.14 seconds. The confidence intervals for both effects were entirely away from zero. Factors B and C had small estimated effects with confidence intervals that included zero, indicating little evidence that they meaningfully affect flight time.
+We then formalized these patterns using a linear model that included all four design factors while blocking on thrower. The estimated effects and confidence intervals are shown in Table 1 below. Factor A had a positive and statistically significant effect, increasing the mean flight time by about 0.22 seconds. Factor D had a negative and significant effect, decreasing the mean flight time by about 0.14 seconds. The confidence intervals for both effects were entirely away from zero. Factors B and C had small estimated effects with confidence intervals that included zero, indicating little evidence that they meaningfully affect flight time.
 
-```{r echo = FALSE, message = FALSE, warning = FALSE, table.env = FALSE}
+```{r echo = FALSE, message = FALSE, warning = FALSE}
 #| label: Q1
 
 fit_q1 <- lm(time ~ a + b + c + d + thrower, data = df)
@@ -98,8 +102,18 @@ q1_table <- tidy(fit_q1, conf.int = TRUE) |>
 
 q1_table |>
   kable(digits = 3, caption = "Main Effects Model Results") |>
-  kable_classic(full_width = FALSE)
+  kable_classic(full_width = FALSE) |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
 Both the exploratory plots and the fitted model point to the same conclusion. Factors A and D are the most influential design components. Factor A corresponds to rotor length, and the model indicates that longer rotors tend to increase flight time. Factor D corresponds to whether a paper clip is attached, and the negative effect estimate suggests that adding a paper clip shortens the flight. In contrast, the variables associated with leg length (factor B) and leg width (factor C) show minimal impact on flight duration under this experimental setup.
+
+## Question 2
+
+
+
+
+## Question 3
+
+
 
