@@ -12,7 +12,7 @@ header-includes:
 
 # Experimental Design
 
-We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A, B, C, and D. A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time. We collected six replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
+We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A (rotor length), B (leg lenth), C (leg width), and D (paper clip on leg). A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time. We collected six replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
 
 To reduce the possibility of ordering effects, we randomized the sequence of the sixteen design combinations before beginning data collection. After establishing this order, we also randomized which thrower completed each drop. Both throwers aimed to release the helicopters in a consistent manner, and random assignment ensures that any natural differences in release technique were distributed evenly across all treatments.
 
