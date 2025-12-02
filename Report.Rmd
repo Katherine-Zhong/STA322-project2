@@ -215,303 +215,155 @@ cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ", round(avg_flight_ti
 
 Change the levels of each factor to get the average flight time for each of the other 15 factor combinations:
 
-2) Average flight time for factor combination a, with factors (+, -, -, -):
 
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# make a new df with factor combination a high (+) set as default level (0)
-
-df_a <- df |>
-  mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 0, 0, 1)
-  )
-
-```
-
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-# Fit linear model with new factor levels for combination a
-
-fit_q3_a <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_a)
-# Get average flight time for factor combination a
-avg_flight_time_a <- tidy(fit_q3_a, conf.int = TRUE) |>
-  filter(term == "(Intercept)") |>
-  select(estimate, conf.low, conf.high)
-
-# print the average flight time and 95% CI for factor combination a
-cat("Average flight time for factor combination a with factors (+, -, -, -):\n")
-cat("Estimate:", round(avg_flight_time_a$estimate, 3), "seconds\n")
-cat("95% CI: (", round(avg_flight_time_a$conf.low, 3), ", ", round(avg_flight_time_a$conf.high, 3), ") seconds \n")
-```
-
-3) Average flight time for factor combination b, with factors (-, +, -, -):
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# make a new df with factor combination b high (+) set as default level (0)
-df_b <- df |>
-  mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 0, 0, 1)
-  )
-
-```
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# Fit linear model with new factor levels for combination b
-fit_q3_b <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_b)
-# Get average flight time for factor combination b
-avg_flight_time_b <- tidy(fit_q3_b, conf.int = TRUE) |>
-  filter(term == "(Intercept)") |>
-  select(estimate, conf.low, conf.high)
-
-# print the average flight time and 95% CI for factor combination b
-cat("Average flight time for factor combination b with factors (-, +, -, -):\
-n")
-cat("Estimate:", round(avg_flight_time_b$estimate, 3), "seconds\n")
-cat("95% CI: (", round(avg_flight_time_b$conf.low, 3), ", ", round(avg_flight_time_b$conf.high, 3), ") seconds \n")
-
-```
-
-
-4) Average flight time for factor combination c, with factors (-, -, +, -):
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# make a new df with factor combination c high (+) set as default level (0)
-df_c <- df |>
-  mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 0, 0, 1)
-  )
-
-```
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# Fit linear model with new factor levels for combination c
-fit_q3_c <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_c)
-
-# Get average flight time for factor combination c
-avg_flight_time_c <- tidy(fit_q3_c, conf.int = TRUE) |>
-  filter(term == "(Intercept)") |>
-  select(estimate, conf.low, conf.high)
-
-# print the average flight time and 95% CI for factor combination c
-cat("Average flight time for factor combination c with factors (-, -, +, -):\
-n")
-cat("Estimate:", round(avg_flight_time_c$estimate, 3), "seconds\n")
-cat("95% CI: (", round(avg_flight_time_c$conf.low, 3), ", ", round(avg_flight_time_c$conf.high, 3), ") seconds \n")
-
-```
-
-
-5) Average flight time for factor combination d, with factors (-, -, -, +):
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-
-# make a new df with factor combination d high (+) set as default level (0)
-df_d <- df |>
-  mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 1, 0, 1)
-  )
-
-```
-
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# Fit linear model with new factor levels for combination d
-fit_q3_d <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_d)
-
-# Get average flight time for factor combination c
-avg_flight_time_d <- tidy(fit_q3_d, conf.int = TRUE) |>
-  filter(term == "(Intercept)") |>
-  select(estimate, conf.low, conf.high)
-
-# print the average flight time and 95% CI for factor combination d
-cat("Average flight time for factor combination d with factors (-, -, -, +):\
-n")
-cat("Estimate:", round(avg_flight_time_d$estimate, 3), "seconds\n")
-cat("95% CI: (", round(avg_flight_time_d$conf.low, 3), ", ", round(avg_flight_time_d$conf.high, 3), ") seconds \n")
-
-```
-
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-
-# Continue this process for the remaining 11 factor combinations (ab, ac, ad, bc, bd, cd, abc, abd, acd, bcd, abcd) using function
-
-# Make sure the `df` object from Q2 and the `tidy` function (likely from broom package) are available in your R environment before running this code.
+```{r}
+# Note: This code assumes that the original data frame 'df' (containing 'time', 'a', 'b', 'c', 'd', 'thrower') 
+# and the 'tidy' function (from the 'broom' package) are available in your R environment.
 
 # Function to estimate and print average flight time for a given combination
 estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc) {
+  # Fit linear model with new factor levels. (a + b + c + d)^3 fits all main effects, 2-way, and 3-way interactions.
   fit_q3 <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_modified)
+  
+  # Get average flight time (intercept) with 95% CI
   avg_flight_time <- tidy(fit_q3, conf.int = TRUE) |>
     filter(term == "(Intercept)") |>
     select(estimate, conf.low, conf.high)
   
+  # print the average flight time and 95% CI
   cat(sprintf("Average flight time for factor combination %s with factors %s:\n", combination_name, factors_desc))
   cat("Estimate:", round(avg_flight_time$estimate, 3), "seconds\n")
   cat("95% CI: (", round(avg_flight_time$conf.low, 3), ", ", round(avg_flight_time$conf.high, 3), ") seconds \n\n")
 }
 
-# --- 6) Average flight time for factor combination ab, with factors (+, +, -, -): ---
+# --- 2) Average flight time for factor combination a, with factors (+, -, -, -): ---
+df_a <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_a, "a", "(+, -, -, -)")
 
+# --- 3) Average flight time for factor combination b, with factors (-, +, -, -): ---
+df_b <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_b, "b", "(-, +, -, -)")
+
+# --- 4) Average flight time for factor combination c, with factors (-, -, +, -): ---
+df_c <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_c, "c", "(-, -, +, -)")
+
+# --- 5) Average flight time for factor combination d, with factors (-, -, -, +): ---
+df_d <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_d, "d", "(-, -, -, +)")
+
+# --- 6) Average flight time for factor combination ab, with factors (+, +, -, -): ---
 df_ab <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 0, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
   )
-
 estimate_avg_flight_time(df_ab, "ab", "(+, +, -, -)")
 
-
 # --- 7) Average flight time for factor combination ac, with factors (+, -, +, -): ---
-
 df_ac <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 0, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
   )
-
 estimate_avg_flight_time(df_ac, "ac", "(+, -, +, -)")
 
-
 # --- 8) Average flight time for factor combination ad, with factors (+, -, -, +): ---
-
 df_ad <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_ad, "ad", "(+, -, -, +)")
 
-
 # --- 9) Average flight time for factor combination bc, with factors (-, +, +, -): ---
-
 df_bc <- df |>
   mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 0, 0, 1)
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
   )
-
 estimate_avg_flight_time(df_bc, "bc", "(-, +, +, -)")
 
-
 # --- 10) Average flight time for factor combination bd, with factors (-, +, -, +): ---
-
 df_bd <- df |>
   mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_bd, "bd", "(-, +, -, +)")
 
 
 # --- 11) Average flight time for factor combination cd, with factors (-, -, +, +): ---
-
 df_cd <- df |>
   mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_cd, "cd", "(-, -, +, +)")
 
 
 # --- 12) Average flight time for factor combination abc, with factors (+, +, +, -): ---
-
 df_abc <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 0, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
   )
-
 estimate_avg_flight_time(df_abc, "abc", "(+, +, +, -)")
 
 
 # --- 13) Average flight time for factor combination abd, with factors (+, +, -, +): ---
-
 df_abd <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 0, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_abd, "abd", "(+, +, -, +)")
 
 
 # --- 14) Average flight time for factor combination acd, with factors (+, -, +, +): ---
-
 df_acd <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 0, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_acd, "acd", "(+, -, +, +)")
 
 
 # --- 15) Average flight time for factor combination bcd, with factors (-, +, +, +): ---
-
 df_bcd <- df |>
   mutate(
-    a = ifelse(a == 0, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_bcd, "bcd", "(-, +, +, +)")
 
 
 # --- 16) Average flight time for factor combination abcd, with factors (+, +, +, +): ---
-
 df_abcd <- df |>
   mutate(
-    a = ifelse(a == 1, 0, 1),
-    b = ifelse(b == 1, 0, 1),
-    c = ifelse(c == 1, 0, 1),
-    d = ifelse(d == 1, 0, 1)
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
   )
-
 estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
 
-
 ```
+
 
 Based on the estimated average and 95% confidence intervals for flight times across all 16 factor combinations, we can see that the average flight time was the longest for combination ab (factors +, +, -, -) at approximately 1.994 seconds, with a 95% CI of (1.858 ,  2.13) seconds.
 
