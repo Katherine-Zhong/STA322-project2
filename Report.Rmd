@@ -12,7 +12,7 @@ header-includes:
 
 # Experimental Design
 
-We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A (rotor length), B (leg lenth), C (leg width), and D (paper clip on leg). A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time. We collected six replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
+We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A (rotor length), B (leg lenth), C (leg width), and D (paper clip on leg). A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time (including interaction terms that might be aliased in a fractional factorial design). We collected six replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
 
 To reduce the possibility of ordering effects, we randomized the sequence of the sixteen design combinations before beginning data collection. After establishing this order, we also randomized which thrower completed each drop. Both throwers aimed to release the helicopters in a consistent manner, and random assignment ensures that any natural differences in release technique were distributed evenly across all treatments.
 
@@ -110,10 +110,411 @@ Both the exploratory plots and the fitted model point to the same conclusion. Fa
 
 ## Question 2
 
+We use a linear regression model to investigate this potential interaction effect between rotor length (A) and leg width (C).
 
+First, we check the model assumptions of a full model with all main effects, all two-way, three-way and four-way interactions between A, B, C, D, and `thrower` as the block variable. We do so by checking the residual vs fitted plot, Q-Q plot, scale-location plot, and residuals vs leverage plot. 
+
+We choose to have the block variable as a fixed effect in the model since we do not expect the thrower effect to be different based on the different helicopter features.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Make linear model with all effects plus block variable
+fit_q2_full <- lm(time ~ a * b * c * d + thrower, data = df)
+
+# summary(fit_q2_full)
+# Check model fit with full linear model
+par(mfrow = c(2, 2))
+plot(fit_q2_full)
+
+```
+
+Overall, the model diagnostics indicate that the linear model is appropriate for the data. The residuals appear to be normally distributed, and there are no obvious patterns in the residuals vs. fitted values plot that would suggest non-linearity or heteroscedasticity. The Q-Q plot shows that the data points are close to the diagonal straight line. The scale-location plot shows a mostly horizontal slope, which indicates constant variance. There are a few potential outliers, but they do not appear to have a significant impact on the overall model fit based on the residuals vs. leverage plot.
+
+Since we are interested in the two-way interaction between rotor length (A) and leg width (C), we fit a reduced model that includes only the main effects and all two-way interaction terms, along with the blocking variable `thrower`.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Fit reduced model with main effects and two-way interactions
+fit_q2_two_way <- lm(time ~ (a + b + c + d)^2 + thrower, data = df)
+
+# summary(fit_q2_two_way)
+```
+
+Compare whether the model with only main effects and two-way interactions is significantly different from the full model with all interaction terms using an ANOVA test.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# ANOVA test to compare full model and reduced model
+anova(fit_q2_two_way, fit_q2_full)
+
+```
+The ANOVA test comparing the full model with all interaction terms to the reduced model with only main effects and two-way interactions yields a p-value of 0.0007. p-value < .05, indicating that there is a significant difference between the two models, suggesting that the additional higher-order interaction terms in the full model does provide a better fit to the data. 
+
+Additionally, try fitting a model with all main effects, two-way interaction effects, three-way interaction effects, and the blocking variable `thrower` to see if including the full model significantly improves the model fit compared to the three-way interaction model.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Fit model with main effects, two-way and three-way interactions
+fit_q2_three_way <- lm(time ~ (a + b + c + d)^3 + thrower, data = df)
+
+# ANOVA test to compare three-way interaction model and full model
+anova(fit_q2_three_way, fit_q2_full)
+
+```
+The ANOVA test comparing the three-way interaction model to the full model yields a p-value of 0.4837 Since p-value > .05, this indicates that including the four-way interaction effect does not significantly improve the model fit compared to the three-way interaction model. Therefore, we will use the three-way interaction model for further analysis.
+
+Just to confirm, we can also compare the two-way interaction model to the three-way interaction model using an ANOVA test.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# ANOVA test to compare three-way interaction model and two way model
+anova(fit_q2_two_way, fit_q2_three_way)
+
+```
+Since p-value = 0.0003 > .05, this indicates that including the three-way interactions model does significantly improve the model fit compared to the two-way interaction model.
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+
+q2_table <- tidy(fit_q2_three_way, conf.int = TRUE) |>
+  select(term, estimate, conf.low, conf.high, std.error, statistic, p.value)
+
+# Model output in tidy table
+q2_table |>
+  kable(digits = 3, caption = "Linear Model with Three-Way Interaction Results") |>
+  kable_classic(full_width = FALSE) |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+
+```
+
+
+Based on our regression model results above, the estimated interaction effect of AC is -0.175 with a p-value of 0.144. The estimated effect size is small and p > .05, indicating insufficient evidence to support the claim of a significant interaction effect between rotor length (A) and leg width (C) on flight time. The confidence interval for the AC interaction term also includes zero (-0.411,	0.061	), further suggesting that the interaction effect is not statistically significant.
 
 
 ## Question 3
 
+To compare the average flight time across all 16 different factor combinations of A, B, C, D, we will set different levels (high +, low -) of each factor as the default level (0) in a linear regression model with all main effects, all two-way and three-way interaction effects, and the block variable and observe how the average flight time (intercept) changes.
+
+1) Average flight time for factor combination (1), with factors (-, -, -, -):
+
+(Get the intercept coefficient and 95% CI from linear model `fit_q2_three_way` with from Q2)
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Get average flight time for factor combination (1)
+avg_flight_time_1 <- tidy(fit_q2_three_way, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination (1) 
+
+cat("Average flight time for factor combination (1) with factors (-, -, -, -):\n")
+cat("Estimate:", round(avg_flight_time_1$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ", round(avg_flight_time_1$conf.high, 3), ") seconds \n")
+
+```
+
+Change the levels of each factor to get the average flight time for each of the other 15 factor combinations:
+
+2) Average flight time for factor combination a, with factors (+, -, -, -):
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# make a new df with factor combination a high (+) set as default level (0)
+
+df_a <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+```
+
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+# Fit linear model with new factor levels for combination a
+
+fit_q3_a <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_a)
+# Get average flight time for factor combination a
+avg_flight_time_a <- tidy(fit_q3_a, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination a
+cat("Average flight time for factor combination a with factors (+, -, -, -):\n")
+cat("Estimate:", round(avg_flight_time_a$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_a$conf.low, 3), ", ", round(avg_flight_time_a$conf.high, 3), ") seconds \n")
+```
+
+3) Average flight time for factor combination b, with factors (-, +, -, -):
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# make a new df with factor combination b high (+) set as default level (0)
+df_b <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Fit linear model with new factor levels for combination b
+fit_q3_b <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_b)
+# Get average flight time for factor combination b
+avg_flight_time_b <- tidy(fit_q3_b, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination b
+cat("Average flight time for factor combination b with factors (-, +, -, -):\
+n")
+cat("Estimate:", round(avg_flight_time_b$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_b$conf.low, 3), ", ", round(avg_flight_time_b$conf.high, 3), ") seconds \n")
+
+```
+
+
+4) Average flight time for factor combination c, with factors (-, -, +, -):
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# make a new df with factor combination c high (+) set as default level (0)
+df_c <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+```
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Fit linear model with new factor levels for combination c
+fit_q3_c <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_c)
+
+# Get average flight time for factor combination c
+avg_flight_time_c <- tidy(fit_q3_c, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination c
+cat("Average flight time for factor combination c with factors (-, -, +, -):\
+n")
+cat("Estimate:", round(avg_flight_time_c$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_c$conf.low, 3), ", ", round(avg_flight_time_c$conf.high, 3), ") seconds \n")
+
+```
+
+
+5) Average flight time for factor combination d, with factors (-, -, -, +):
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+
+# make a new df with factor combination d high (+) set as default level (0)
+df_d <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+```
+
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Fit linear model with new factor levels for combination d
+fit_q3_d <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_d)
+
+# Get average flight time for factor combination c
+avg_flight_time_d <- tidy(fit_q3_d, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination d
+cat("Average flight time for factor combination d with factors (-, -, -, +):\
+n")
+cat("Estimate:", round(avg_flight_time_d$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_d$conf.low, 3), ", ", round(avg_flight_time_d$conf.high, 3), ") seconds \n")
+
+```
+
+
+```{r echo = FALSE, message = FALSE, warning = FALSE}
+
+# Continue this process for the remaining 11 factor combinations (ab, ac, ad, bc, bd, cd, abc, abd, acd, bcd, abcd) using function
+
+# Make sure the `df` object from Q2 and the `tidy` function (likely from broom package) are available in your R environment before running this code.
+
+# Function to estimate and print average flight time for a given combination
+estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc) {
+  fit_q3 <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_modified)
+  avg_flight_time <- tidy(fit_q3, conf.int = TRUE) |>
+    filter(term == "(Intercept)") |>
+    select(estimate, conf.low, conf.high)
+  
+  cat(sprintf("Average flight time for factor combination %s with factors %s:\n", combination_name, factors_desc))
+  cat("Estimate:", round(avg_flight_time$estimate, 3), "seconds\n")
+  cat("95% CI: (", round(avg_flight_time$conf.low, 3), ", ", round(avg_flight_time$conf.high, 3), ") seconds \n\n")
+}
+
+# --- 6) Average flight time for factor combination ab, with factors (+, +, -, -): ---
+
+df_ab <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+estimate_avg_flight_time(df_ab, "ab", "(+, +, -, -)")
+
+
+# --- 7) Average flight time for factor combination ac, with factors (+, -, +, -): ---
+
+df_ac <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+estimate_avg_flight_time(df_ac, "ac", "(+, -, +, -)")
+
+
+# --- 8) Average flight time for factor combination ad, with factors (+, -, -, +): ---
+
+df_ad <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_ad, "ad", "(+, -, -, +)")
+
+
+# --- 9) Average flight time for factor combination bc, with factors (-, +, +, -): ---
+
+df_bc <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+estimate_avg_flight_time(df_bc, "bc", "(-, +, +, -)")
+
+
+# --- 10) Average flight time for factor combination bd, with factors (-, +, -, +): ---
+
+df_bd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_bd, "bd", "(-, +, -, +)")
+
+
+# --- 11) Average flight time for factor combination cd, with factors (-, -, +, +): ---
+
+df_cd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_cd, "cd", "(-, -, +, +)")
+
+
+# --- 12) Average flight time for factor combination abc, with factors (+, +, +, -): ---
+
+df_abc <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 0, 0, 1)
+  )
+
+estimate_avg_flight_time(df_abc, "abc", "(+, +, +, -)")
+
+
+# --- 13) Average flight time for factor combination abd, with factors (+, +, -, +): ---
+
+df_abd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_abd, "abd", "(+, +, -, +)")
+
+
+# --- 14) Average flight time for factor combination acd, with factors (+, -, +, +): ---
+
+df_acd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_acd, "acd", "(+, -, +, +)")
+
+
+# --- 15) Average flight time for factor combination bcd, with factors (-, +, +, +): ---
+
+df_bcd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_bcd, "bcd", "(-, +, +, +)")
+
+
+# --- 16) Average flight time for factor combination abcd, with factors (+, +, +, +): ---
+
+df_abcd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1),
+    b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1),
+    d = ifelse(d == 1, 0, 1)
+  )
+
+estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
+
+
+```
+
+Based on the estimated average and 95% confidence intervals for flight times across all 16 factor combinations, we can see that the average flight time was the longest for combination ab (factors +, +, -, -) at approximately 1.994 seconds, with a 95% CI of (1.858 ,  2.13) seconds.
+
+This suggests the ideal combination to make the helicopter fly long is one that has both rotor length (A) and leg length (B) at their high levels and leg width (C) and paper clip on leg (D) at their low levels.
 
 
