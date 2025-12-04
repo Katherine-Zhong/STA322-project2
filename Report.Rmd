@@ -411,3 +411,354 @@ estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
 
 <!-- This suggests the ideal combination to make the helicopter fly long is one that has both rotor length (A) and leg length (B) at their high levels and leg width (C) and paper clip on leg (D) at their low levels. -->
 
+## Code
+
+Setup
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+#| label: load-packages-code
+
+library(tidyverse)
+library(broom)
+library(knitr)
+library(kableExtra)
+library(emmeans)
+library(dplyr)
+library(tidyr)
+```
+
+Load data
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+#| label: load-data-code
+
+data <- read_csv("STA322-project2-helicopter - Sheet1.csv")
+```
+
+Data wrangling
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+#| label: data-wrangling-code
+
+df <- data |>
+  mutate(
+    # treat a–d as 0/1 indicators for the four design factors
+    across(a:d, as.integer),
+    
+    # factors for people
+    thrower = factor(thrower),
+    maker = factor(maker),
+    
+    # combination as a factor, ordered by how it appears
+    combination = factor(combination, levels = unique(combination))
+  )
+
+# summary(df$time)
+```
+
+### Q1
+
+Main effects box plot
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+#| label: main-effects-code
+
+main_effect_summaries <- df |>
+  pivot_longer(a:d, names_to = "factor", values_to = "level") |>
+  group_by(factor, level) |>
+  summarise(
+    mean_time = mean(time),
+    sd_time = sd(time),
+    n = n(),
+    .groups = "drop"
+  )
+
+# main_effect_summaries
+
+df |>
+  pivot_longer(a:d, names_to = "factor", values_to = "level") |>
+  mutate(level = factor(level)) |>
+  ggplot(aes(x = level, y = time)) +
+  geom_boxplot() +
+  facet_wrap(~ factor, nrow = 1) +
+  labs(
+    title = "Main Effect Plots for Factors A-D",
+    x = "Level",
+    y = "Flight time (seconds)"
+  )
+```
+
+Fit main effects model with blocked variable and check model assumptions
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+fit_q1 <- lm(time ~ a + b + c + d + thrower, data = df)
+
+par(mfrow = c(2, 2))
+plot(fit_q1)
+```
+
+Display main effects model results
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# summary(fit_q1)
+
+q1_table <- tidy(fit_q1, conf.int = TRUE) |>
+  select(term, estimate, conf.low, conf.high, std.error, statistic, p.value)
+
+q1_table |>
+  kable(digits = 3, caption = "Main Effects Model Results") |>
+  kable_classic(full_width = FALSE) |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+### Q2
+
+Fit full model and check model assumptions
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Make linear model with all effects plus block variable
+fit_q2_full <- lm(time ~ a * b * c * d + thrower, data = df)
+
+# summary(fit_q2_full)
+# Check model fit with full linear model
+par(mfrow = c(2, 2))
+plot(fit_q2_full)
+```
+
+Fit reduced model with main effects and two-way interactions
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Fit reduced model with main effects and two-way interactions
+fit_q2_two_way <- lm(time ~ (a + b + c + d)^2 + thrower, data = df)
+
+# summary(fit_q2_two_way)
+```
+
+ANOVA to compare full model with two-way interaction model
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# ANOVA test to compare full model and reduced model
+anova_res <- anova(fit_q2_two_way, fit_q2_full)
+
+kable(anova_res, caption = "ANOVA Comparison of Reduced and Full Models") %>%
+  kable_styling(full_width = FALSE, position = "center") |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+Fit three-way interaction model; ANOVA to compare with full model
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Fit model with main effects, two-way and three-way interactions
+fit_q2_three_way <- lm(time ~ (a + b + c + d)^3 + thrower, data = df)
+
+# ANOVA test to compare three-way interaction model and full model
+anova2 <- anova(fit_q2_three_way, fit_q2_full)
+
+kable(anova2, caption = "ANOVA Comparison of Three-Way Interaction and Full Models") %>%
+  kable_styling(full_width = FALSE, position = "center") |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+ANOVA to compare two-way interaction model with three-way interaction model
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# ANOVA test to compare three-way interaction model and two way model
+anova3 <- anova(fit_q2_two_way, fit_q2_three_way)
+
+kable(anova3, caption = "ANOVA Comparison of Two-Way and Three-Way Interaction Models") %>%
+  kable_styling(full_width = FALSE, position = "center") |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+Display final model (model with three-way interactions) output
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+q2_table <- tidy(fit_q2_three_way, conf.int = TRUE) |>
+  select(term, estimate, conf.low, conf.high, std.error, statistic, p.value)
+
+# Model output in tidy table
+q2_table |>
+  kable(digits = 3, caption = "Linear Model with Three-Way Interaction Results") |>
+  kable_classic(full_width = FALSE) |>
+  kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+
+### Q3
+
+Get estimated average flight time for all 16 factor combinations using `emmeans`
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Get estimated marginal means for all 16 combinations
+emm_all <- emmeans(fit_q2_three_way, ~ a * b * c * d, infer = TRUE, level = 0.95)
+
+emm_table <- as.data.frame(emm_all) %>%
+  rename(estimate = emmean, conf.low = lower.CL, conf.high = upper.CL) %>%
+  mutate(
+    factors = paste0("(", a, ", ", b, ", ", c, ", ", d, ")")
+  ) %>%
+  select(factors, estimate, conf.low, conf.high) %>%
+  arrange(desc(estimate))
+
+kable(emm_table, digits = 3,
+      col.names = c("Levels (A,B,C,D)", "Estimate (s)", "95% CI low", "95% CI high"),
+      caption = "Estimated average flight time (seconds) for all 16 factor combinations") |>
+      kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+Manually calculated the average flight time for factor combination (1), with factors (-, -, -, -):
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Get average flight time for factor combination (1)
+avg_flight_time_1 <- tidy(fit_q2_three_way, conf.int = TRUE) |>
+  filter(term == "(Intercept)") |>
+  select(estimate, conf.low, conf.high)
+
+# print the average flight time and 95% CI for factor combination (1) 
+
+cat("Average flight time for factor combination (1) with factors (-, -, -, -):\n")
+cat("Estimate:", round(avg_flight_time_1$estimate, 3), "seconds\n")
+cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ", round(avg_flight_time_1$conf.high, 3), ") seconds \n")
+
+```
+
+Write function to calculate the average flight times for the 15 other combinations
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc) {
+  # Fit linear model with new factor levels. (a + b + c + d)^3 fits all main effects, 2-way, and 3-way interactions.
+  fit_q3 <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_modified)
+  
+  # Get average flight time (intercept) with 95% CI
+  avg_flight_time <- tidy(fit_q3, conf.int = TRUE) |>
+    filter(term == "(Intercept)") |>
+    select(estimate, conf.low, conf.high)
+  
+  # print the average flight time and 95% CI
+  cat(sprintf("Average flight time for factor combination %s with factors %s:\n", combination_name, factors_desc))
+  cat("Estimate:", round(avg_flight_time$estimate, 3), "seconds\n")
+  cat("95% CI: (", round(avg_flight_time$conf.low, 3), ", ", round(avg_flight_time$conf.high, 3), ") seconds \n\n")
+}
+
+# --- 2) Average flight time for factor combination a, with factors (+, -, -, -): ---
+df_a <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_a, "a", "(+, -, -, -)")
+
+# --- 3) Average flight time for factor combination b, with factors (-, +, -, -): ---
+df_b <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_b, "b", "(-, +, -, -)")
+
+# --- 4) Average flight time for factor combination c, with factors (-, -, +, -): ---
+df_c <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_c, "c", "(-, -, +, -)")
+
+# --- 5) Average flight time for factor combination d, with factors (-, -, -, +): ---
+df_d <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_d, "d", "(-, -, -, +)")
+
+# --- 6) Average flight time for factor combination ab, with factors (+, +, -, -): ---
+df_ab <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_ab, "ab", "(+, +, -, -)")
+
+# --- 7) Average flight time for factor combination ac, with factors (+, -, +, -): ---
+df_ac <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_ac, "ac", "(+, -, +, -)")
+
+# --- 8) Average flight time for factor combination ad, with factors (+, -, -, +): ---
+df_ad <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_ad, "ad", "(+, -, -, +)")
+
+# --- 9) Average flight time for factor combination bc, with factors (-, +, +, -): ---
+df_bc <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_bc, "bc", "(-, +, +, -)")
+
+# --- 10) Average flight time for factor combination bd, with factors (-, +, -, +): ---
+df_bd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_bd, "bd", "(-, +, -, +)")
+
+
+# --- 11) Average flight time for factor combination cd, with factors (-, -, +, +): ---
+df_cd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_cd, "cd", "(-, -, +, +)")
+
+
+# --- 12) Average flight time for factor combination abc, with factors (+, +, +, -): ---
+df_abc <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 0, 0, 1)
+  )
+estimate_avg_flight_time(df_abc, "abc", "(+, +, +, -)")
+
+
+# --- 13) Average flight time for factor combination abd, with factors (+, +, -, +): ---
+df_abd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 0, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_abd, "abd", "(+, +, -, +)")
+
+
+# --- 14) Average flight time for factor combination acd, with factors (+, -, +, +): ---
+df_acd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 0, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_acd, "acd", "(+, -, +, +)")
+
+
+# --- 15) Average flight time for factor combination bcd, with factors (-, +, +, +): ---
+df_bcd <- df |>
+  mutate(
+    a = ifelse(a == 0, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_bcd, "bcd", "(-, +, +, +)")
+
+
+# --- 16) Average flight time for factor combination abcd, with factors (+, +, +, +): ---
+df_abcd <- df |>
+  mutate(
+    a = ifelse(a == 1, 0, 1), b = ifelse(b == 1, 0, 1),
+    c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
+  )
+estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
+
+```
