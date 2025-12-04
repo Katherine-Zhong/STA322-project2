@@ -33,5 +33,64 @@ results <- map_df(1:16, ~{
 results
 ```
 
+```{r}
+library(dplyr)
+library(tidyr)
+library(emmeans)
+
+# 1) emmeans (what you already computed)
+
+emm_all <- emmeans(fit_q2_three_way, ~ a * b * c * d, infer = TRUE, level = 0.95)
+emm_df <- as.data.frame(emm_all) %>%
+rename(estimate_emm = emmean, conf.low_emm = lower.CL, conf.high_emm = upper.CL) %>%
+mutate(combo = paste0("(", a, ",", b, ",", c, ",", d, ")")) %>%
+select(combo, a, b, c, d, estimate_emm, conf.low_emm, conf.high_emm)
+
+# 2) Brute-force manual marginal predictions (correct)
+
+combos <- expand.grid(a = 0:1, b = 0:1, c = 0:1, d = 0:1) %>%
+arrange(-a, -b, -c, -d) %>%    # sort so highest combos appear first (optional)
+mutate(combo = paste0("(", a, ",", b, ",", c, ",", d, ")"))
+
+thrower_levels <- levels(df$thrower)
+
+newdata <- combos %>%
+slice(rep(1:n(), each = length(thrower_levels))) %>%
+mutate(thrower = rep(thrower_levels, times = nrow(combos))) %>%
+select(a, b, c, d, thrower, combo)
+
+# predict (response scale)
+
+newdata$pred <- predict(fit_q2_three_way, newdata = newdata, type = "response")
+
+manual_df <- newdata %>%
+group_by(combo, a, b, c, d) %>%
+summarise(
+estimate_manual = mean(pred),    # marginal over thrower
+sd_pred = sd(pred),
+n_thrower = n(),
+.groups = "drop"
+) %>%
+mutate(se_manual = sd_pred / sqrt(n_thrower))
+
+# 3) compare and spot mismatches
+
+compare_tbl <- left_join(emm_df, manual_df, by = c("combo","a","b","c","d")) %>%
+arrange(desc(estimate_emm)) %>%
+mutate(
+rank_emm = row_number(),
+rank_manual = rank(-estimate_manual, ties.method = "first"),
+diff = estimate_emm - estimate_manual
+)
+
+print(compare_tbl, n = nrow(compare_tbl))
+
+# summary checks
+
+same_order <- all(compare_tbl$rank_emm == compare_tbl$rank_manual)
+cat("\nSame ordering? ", same_order, "\n")
+cat("Max absolute difference emmeans vs manual:", max(abs(compare_tbl$diff)), "\n")
+
+```
 
 
