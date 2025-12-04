@@ -206,9 +206,9 @@ Based on our regression model results above, the estimated interaction effect of
 
 ## Question 3
 
-To determine the helicopter design that maximizes flight time, we estimated the average flight time for each of the 16 combinations of factors A-D using the three-way interaction model selected in Question 2 (as this model provided the best fit among all evaluated).
+To determine the helicopter design that maximizes flight time, we estimated the average flight time for each of the sixteen combinations of factors A through D using the three-way interaction model selected in Question 2, which provided the best overall fit.
 
-We obtained the estimated means using the `emmeans` package. We opted for this approach over manually resetting reference levels because it computes the model-based mean for every factor combination directly and consistently while properly incorporating all main effects, interactions, and the blocking variable.
+We obtained these estimates using the `emmeans` package. `emmeans` computes the model-based mean for each factor combination by evaluating the fitted regression model at the specified factor levels and averaging over the blocking variable, while properly incorporating all main effects and interaction terms. We chose this method because it provides consistent and reliable predictions without repeatedly altering reference levels in the data. A comparison with the reference-level approach, described in the appendix, confirms that both methods produce the same results.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -235,7 +235,7 @@ The longest predicted flight time was obtained when A = 1, B = 1, C = 0, and D =
 
 # Appendix
 
-For Question 3, we first tried manually resetting reference levels. Results were similar and the conclusion were the same, but we ultimately decided to use the more efficient `emmeans`.
+For Question 3, we also used a manual approach that involved changing factor reference levels and extracting the model intercept to obtain the predicted means. This method produced the same results as `emmeans`, which confirms that both procedures are consistent with the fitted model. We included the manual approach to verify our predictions, but `emmeans` is more practical in application because it computes all combinations directly and avoids the repeated refitting required by the manual method.
 
 <!-- PREVIOUS -->
 
@@ -549,7 +549,8 @@ fit_q2_three_way <- lm(time ~ (a + b + c + d)^3 + thrower, data = df)
 # ANOVA test to compare three-way interaction model and full model
 anova2 <- anova(fit_q2_three_way, fit_q2_full)
 
-kable(anova2, caption = "ANOVA Comparison of Three-Way Interaction and Full Models") %>%
+kable(anova2, caption = "ANOVA Comparison of Three-Way Interaction and Full
+      Models") %>%
   kable_styling(full_width = FALSE, position = "center") |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
@@ -560,7 +561,8 @@ ANOVA to compare two-way interaction model with three-way interaction model
 # ANOVA test to compare three-way interaction model and two way model
 anova3 <- anova(fit_q2_two_way, fit_q2_three_way)
 
-kable(anova3, caption = "ANOVA Comparison of Two-Way and Three-Way Interaction Models") %>%
+kable(anova3, caption = "ANOVA Comparison of Two-Way and Three-Way
+      Interaction Models") %>%
   kable_styling(full_width = FALSE, position = "center") |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
@@ -597,7 +599,8 @@ emm_table <- as.data.frame(emm_all) %>%
 
 kable(emm_table, digits = 3,
       col.names = c("Levels (A,B,C,D)", "Estimate (s)", "95% CI low", "95% CI high"),
-      caption = "Estimated average flight time (seconds) for all 16 factor combinations") |>
+      caption = "Estimated average flight time (seconds) for all
+      16 factor combinations") |>
       kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
@@ -613,15 +616,16 @@ avg_flight_time_1 <- tidy(fit_q2_three_way, conf.int = TRUE) |>
 
 cat("Average flight time for factor combination (1) with factors (-, -, -, -):\n")
 cat("Estimate:", round(avg_flight_time_1$estimate, 3), "seconds\n")
-cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ", round(avg_flight_time_1$conf.high, 3), ") seconds \n")
-
+cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ",
+    round(avg_flight_time_1$conf.high, 3), ") seconds \n")
 ```
 
 Write function to calculate the average flight times for the 15 other combinations
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc) {
-  # Fit linear model with new factor levels. (a + b + c + d)^3 fits all main effects, 2-way, and 3-way interactions.
+  # Fit linear model with new factor levels.
+  # (a + b + c + d)^3 fits all main effects, 2-way, and 3-way interactions.
   fit_q3 <- lm(time ~ (a + b + c + d)^3 + thrower, data = df_modified)
   
   # Get average flight time (intercept) with 95% CI
@@ -630,9 +634,11 @@ estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc
     select(estimate, conf.low, conf.high)
   
   # print the average flight time and 95% CI
-  cat(sprintf("Average flight time for factor combination %s with factors %s:\n", combination_name, factors_desc))
+  cat(sprintf("Average flight time for factor combination %s with factors %s:\n",
+              combination_name, factors_desc))
   cat("Estimate:", round(avg_flight_time$estimate, 3), "seconds\n")
-  cat("95% CI: (", round(avg_flight_time$conf.low, 3), ", ", round(avg_flight_time$conf.high, 3), ") seconds \n\n")
+  cat("95% CI: (", round(avg_flight_time$conf.low, 3), ", ",
+      round(avg_flight_time$conf.high, 3), ") seconds \n\n")
 }
 
 # --- 2) Average flight time for factor combination a, with factors (+, -, -, -): ---
@@ -760,5 +766,5 @@ df_abcd <- df |>
     c = ifelse(c == 1, 0, 1), d = ifelse(d == 1, 0, 1)
   )
 estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
-
 ```
+
