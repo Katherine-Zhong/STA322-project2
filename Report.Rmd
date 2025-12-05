@@ -30,6 +30,10 @@ library(kableExtra)
 library(emmeans)
 library(dplyr)
 library(tidyr)
+library(broom)
+library(dplyr)
+library(purrr)
+library(kableExtra)
 ```
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -116,6 +120,8 @@ q1_table |>
 ```
 
 Both the exploratory plots and the fitted model point to the same conclusion. Factors A and D are the most influential design components. Factor A corresponds to rotor length, and the model indicates that longer rotors tend to increase flight time. Factor D corresponds to whether a paper clip is attached, and the negative effect estimate suggests that adding a paper clip shortens the flight. In contrast, the variables associated with leg length (factor B) and leg width (factor C) show minimal impact on flight duration under this experimental setup.
+
+Although the exploratory plots and main-effects model indicate that only factors A and D meaningfully influence flight time, these conclusions rely on a model that does not include interaction terms. Because factors in a full factorial experiment may contribute through interactions even when their main effects appear small, we also ompared the full interaction model to reduced models that removed each factor and all of its associated interaction terms. These nested ANOVA comparisons quantify the total contribution of each factor to model fit. Removing factor A or factor D led to substantial increases in residual error ($\Delta$adj-$R^2$ = 0.262 and 0.316, respectively), reaffirming that both factors are highly influential. Removing factors B or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.196 and 0.153), suggesting that they participate in interaction patterns even though their main effects alone were not statistically significant. Thus, while the simple main-effects model highlights A and D as the most important design features, the broader model-comparison results show that all four factors contribute to explaining flight time to varying degrees, with D and A having the strongest overall influence. Full details and output tables for these comparisons are provided in the Appendix.
 
 ## Question 2
 
@@ -234,6 +240,74 @@ The longest predicted flight time was obtained when A = 1, B = 1, C = 0, and D =
 \newpage
 
 # Appendix
+
+To supplement our Q1 analysis, we evaluated the importance of each factor by comparing the full three-way interaction model to reduced models that omitted one factor and all interaction terms containing that factor. This approach assesses the total contribution of each factor (main effect + interactions), addressing the possibility that some factors may matter primarily through interactions even if their main effects appear small. Table A1 presents the nested ANOVA (partial F) results for these model comparisons, and Table A2 reports the corresponding changes in R² and adjusted R².
+
+```{r echo = FALSE, message = FALSE, warning = FALSE, results = 'asis'}
+
+# Full model from Q2
+full <- fit_q2_three_way
+factors <- c("a","b","c","d")
+
+res <- map_dfr(factors, function(f) {
+  others <- setdiff(factors, f)
+  fmla <- as.formula(paste0("time ~ (", paste(others, collapse = " + "), ")^3 + thrower"))
+  red <- lm(fmla, data = df)
+  a <- anova(red, full)
+  a_df <- as.data.frame(a)
+  diff_row <- a_df[2, ]
+  
+  r_full <- summary(full)$r.squared
+  adjr_full <- summary(full)$adj.r.squared
+  r_red <- summary(red)$r.squared
+  adjr_red <- summary(red)$adj.r.squared
+  
+  tibble(
+    Factor = toupper(f),
+    Df_added = diff_row[[3]],
+    SumSq_added = diff_row[[4]],
+    F_stat = diff_row[[5]],
+    p_value = diff_row[[6]],
+    delta_R2 = r_full - r_red,
+    delta_AdjR2 = adjr_full - adjr_red
+  )
+})
+
+# Table A1: ANOVA summary
+res %>%
+  select(Factor, Df_added, SumSq_added, F_stat, p_value) %>%
+  rename(
+    `Factor removed` = Factor,
+    `Df (added)` = Df_added,
+    `Sum of Sq (added)` = SumSq_added,
+    `F` = F_stat,
+    `Pr(>F)` = p_value
+  ) %>%
+  kable(
+    digits = c(0,0,3,3,6),
+    caption = "Table A1. Nested ANOVA summary for removing each factor"
+  ) %>%
+  kable_styling(full_width = FALSE, latex_options = "HOLD_position")
+
+cat("\n\n")
+
+# Table A2: R-sq and adj-R-sq
+res %>%
+  select(Factor, delta_R2, delta_AdjR2) %>%
+  rename(
+    `Factor removed` = Factor,
+    `Change in R²` = delta_R2,
+    `Change in Adj R²` = delta_AdjR2
+  ) %>%
+  mutate(across(c(`Change in R²`, `Change in Adj R²`), ~ round(., 3))) %>%
+  kable(
+    digits = 3,
+    caption = "Table A2. Change in R² and adjusted R² when removing each factor"
+  ) %>%
+  kable_styling(full_width = FALSE, latex_options = "HOLD_position")
+```
+
+These results provide the detailed evidence referred to in Q1. The nested ANOVA tests (Table A1) show how much model fit deteriorates when a factor and all its associated interactions are removed, and the $R^2$ summaries (Table A2) quantify the corresponding loss in explained variability.
 
 For Question 3, we also used a manual approach that involved changing factor reference levels and extracting the model intercept to obtain the predicted means. This method produced the same results as `emmeans`, which confirms that both procedures are consistent with the fitted model. We included the manual approach to verify our predictions, but `emmeans` is more practical in application because it computes all combinations directly and avoids the repeated refitting required by the manual method.
 
@@ -504,6 +578,71 @@ q1_table |>
   kable(digits = 3, caption = "Main Effects Model Results") |>
   kable_classic(full_width = FALSE) |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
+```
+
+Supplementary analysis
+```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
+
+# Full model from Q2
+full <- fit_q2_three_way
+factors <- c("a","b","c","d")
+
+res <- map_dfr(factors, function(f) {
+  others <- setdiff(factors, f)
+  fmla <- as.formula(paste0("time ~ (", paste(others, collapse = " + "), ")^3 + thrower"))
+  red <- lm(fmla, data = df)
+  a <- anova(red, full)
+  a_df <- as.data.frame(a)
+  diff_row <- a_df[2, ]
+  
+  r_full <- summary(full)$r.squared
+  adjr_full <- summary(full)$adj.r.squared
+  r_red <- summary(red)$r.squared
+  adjr_red <- summary(red)$adj.r.squared
+  
+  tibble(
+    Factor = toupper(f),
+    Df_added = diff_row[[3]],
+    SumSq_added = diff_row[[4]],
+    F_stat = diff_row[[5]],
+    p_value = diff_row[[6]],
+    delta_R2 = r_full - r_red,
+    delta_AdjR2 = adjr_full - adjr_red
+  )
+})
+
+# Table A1: ANOVA summary
+res %>%
+  select(Factor, Df_added, SumSq_added, F_stat, p_value) %>%
+  rename(
+    `Factor removed` = Factor,
+    `Df (added)` = Df_added,
+    `Sum of Sq (added)` = SumSq_added,
+    `F` = F_stat,
+    `Pr(>F)` = p_value
+  ) %>%
+  kable(
+    digits = c(0,0,3,3,6),
+    caption = "Table A1. Nested ANOVA summary for removing each factor"
+  ) %>%
+  kable_styling(full_width = FALSE, latex_options = "HOLD_position")
+
+cat("\n\n")
+
+# Table A2: R-sq and adj-R-sq
+res %>%
+  select(Factor, delta_R2, delta_AdjR2) %>%
+  rename(
+    `Factor removed` = Factor,
+    `Change in R²` = delta_R2,
+    `Change in Adj R²` = delta_AdjR2
+  ) %>%
+  mutate(across(c(`Change in R²`, `Change in Adj R²`), ~ round(., 3))) %>%
+  kable(
+    digits = 3,
+    caption = "Table A2. Change in R² and adjusted R² when removing each factor"
+  ) %>%
+  kable_styling(full_width = FALSE, latex_options = "HOLD_position")
 ```
 
 ### Q2
