@@ -121,7 +121,7 @@ q1_table |>
 
 Both the exploratory plots and the fitted model point to the same conclusion. Factors A and D are the most influential design components. Factor A corresponds to rotor length, and the model indicates that longer rotors tend to increase flight time. Factor D corresponds to whether a paper clip is attached, and the negative effect estimate suggests that adding a paper clip shortens the flight. In contrast, the variables associated with leg length (factor B) and leg width (factor C) show minimal impact on flight duration under this experimental setup.
 
-Although the exploratory plots and main-effects model indicate that only factors A and D meaningfully influence flight time, these conclusions rely on a model that does not include interaction terms. Because factors in a full factorial experiment may contribute through interactions even when their main effects appear small, we also ompared the full interaction model to reduced models that removed each factor and all of its associated interaction terms. These nested ANOVA comparisons quantify the total contribution of each factor to model fit. Removing factor A or factor D led to substantial increases in residual error ($\Delta$adj-$R^2$ = 0.262 and 0.316, respectively), reaffirming that both factors are highly influential. Removing factors B or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.196 and 0.153), suggesting that they participate in interaction patterns even though their main effects alone were not statistically significant. Thus, while the simple main-effects model highlights A and D as the most important design features, the broader model-comparison results show that all four factors contribute to explaining flight time to varying degrees, with D and A having the strongest overall influence. Full details and output tables for these comparisons are provided in the Appendix.
+Although the exploratory plots and main-effects model indicate that only factors A and D meaningfully influence flight time, these conclusions rely on a model that does not include interaction terms. Because factors in a full factorial experiment may contribute through interactions even when their main effects appear small, we also compared the full interaction model to reduced models that removed each factor and all of its associated interaction terms (see Appendix for code). These nested ANOVA comparisons quantify the total contribution of each factor to model fit. Removing factor A or factor D led to substantial increases in residual error ($\Delta$adj-$R^2$ = 0.259 and 0.312, respectively), reaffirming that both factors are highly influential. Removing factors B or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.193 and 0.150), suggesting that they participate in interaction patterns even though their main effects alone were not statistically significant. Thus, while the simple main-effects model highlights A and D as the most important design features, the broader model-comparison results show that all four factors contribute to explaining flight time to varying degrees, with D and A having the strongest overall influence. Full details and output tables for these comparisons are provided in the Appendix.
 
 ## Question 2
 
@@ -584,7 +584,7 @@ Supplementary analysis
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Full model from Q2
-full <- fit_q2_three_way
+full <- fit_q2_full
 factors <- c("a","b","c","d")
 
 res <- map_dfr(factors, function(f) {
