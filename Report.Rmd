@@ -208,7 +208,7 @@ or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.193
 and 0.150), suggesting that they participate in interaction patterns
 even though their main effects alone were not statistically significant.
 All p-values for each of the nested F-tests between the full model and
-the models with factors involvind a, b, c, or d removed were very small
+the models with factors involving a, b, c, or d removed were very small
 (all of them smaller than .01). Thus, while the simple main-effects
 model highlights A and D as the most important design features, the
 broader model-comparison results show that all four factors contribute
@@ -507,7 +507,7 @@ These results provide the detailed evidence referred to in Q1. The
 nested ANOVA tests (Table A1) show how much model fit deteriorates when
 a factor and all its associated interactions are removed, and the $R^2$
 summaries (Table A2) quantify the corresponding loss in explained
-variability.
+variability. Using our knowledge from Q2 that the three-way interaction model was the best fit, we also ran this analysis using that model. The p-values and $R^2$/adjusted-$R^2$ values were slightly different (differences negligible), but the ultimate conclusion was the same (i.e. D and A most influential, B and C main effects alone not influential).
 
 For Question 3, we also used a manual approach that involved changing
 factor reference levels and extracting the model intercept to obtain the
