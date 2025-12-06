@@ -28,10 +28,11 @@ while keeping the data collection workload manageable.
 To reduce the possibility of ordering effects, we randomized the
 sequence of the sixteen design combinations before beginning data
 collection. After establishing this order, we also randomized which
-thrower completed each drop. Both throwers aimed to release the
-helicopters in a consistent manner, and random assignment ensures that
-any natural differences in release technique were distributed evenly
-across all treatments.
+thrower completed each drop (among the six drops for each factor
+combination). Both throwers aimed to release the helicopters in a
+consistent manner, and random assignment ensures that any natural
+differences in release technique were distributed evenly across all
+treatments.
 
 We treated thrower as a blocking variable. Although using a single
 thrower would theoretically eliminate person-to-person variation, it
@@ -47,7 +48,8 @@ combination, we created a fully crossed block that allowed us to account
 for person-specific differences directly and improve the precision of
 the estimated factor effects.
 
-All drops were completed within a single session. While some
+All drops were completed within a single session, with both experimenter
+present. We tested the helicopter drops one by one. While some
 within-session variation is possible, the number of drops per person was
 modest after splitting the workload, and the randomized allocation of
 treatments ensures that any minor temporal changes did not align with
@@ -138,16 +140,20 @@ df |>
 ```
 
 We then formalized these patterns using a linear model that included all
-four design factors while blocking on thrower. A check of the model
-assumptions shows that the diagnostics are acceptable: the residuals vs.
-fitted plot shows no systematic curvature, supporting the linearity
-assumption; the Q-Q plot follows the reference line closely aside from
-minor tail deviations, indicating approximate normality; and the
-scale-location plot suggests that the spread of residuals remains fairly
-constant across fitted values, indicating no strong heteroscedasticity.
-The constant leverage plot also shows no observations with both large
-residuals and high leverage, so there are no influential points that
-would compromise the model.
+four design factors while blocking on thrower. (We included `maker` as a
+variable in the data file but we did not use it in our model because
+both experimenters followed the instructions faithfully, and thus we
+don't expect the person who made the helicopter to make a difference in
+the flight time). A check of the model assumptions shows that the
+diagnostics are acceptable: the residuals vs. fitted plot shows no
+systematic curvature, supporting the linearity assumption; the Q-Q plot
+follows the reference line closely aside from minor tail deviations,
+indicating approximate normality; and the scale-location plot suggests
+that the spread of residuals remains fairly constant across fitted
+values, indicating no strong heteroscedasticity. The constant leverage
+plot also shows no observations with both large residuals and high
+leverage, so there are no influential points that would compromise the
+model.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 fit_q1 <- lm(time ~ a + b + c + d + thrower, data = df)
