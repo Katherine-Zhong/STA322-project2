@@ -8,17 +8,52 @@ output:
     toc: false
 header-includes:
   - \usepackage{float}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 # Experimental Design
 
-We conducted a full $2^4$ factorial experiment that included all sixteen combinations of the four helicopter design factors A (rotor length), B (leg lenth), C (leg width), and D (paper clip on leg). A full factorial structure was appropriate because our goal was to estimate the main effects of each design feature and evaluate whether any interactions influenced flight time, including interaction terms that might be aliased in a fractional factorial design. We collected six replicate drops for each design to obtain precise estimates of the factor effects while keeping the data collection workload manageable.
+We conducted a full $2^4$ factorial experiment that included all sixteen
+combinations of the four helicopter design factors A (rotor length), B
+(leg lenth), C (leg width), and D (paper clip on leg). A full factorial
+structure was appropriate because our goal was to estimate the main
+effects of each design feature and evaluate whether any interactions
+influenced flight time, including interaction terms that might be
+aliased in a fractional factorial design. We collected six replicate
+drops for each design to obtain precise estimates of the factor effects
+while keeping the data collection workload manageable.
 
-To reduce the possibility of ordering effects, we randomized the sequence of the sixteen design combinations before beginning data collection. After establishing this order, we also randomized which thrower completed each drop. Both throwers aimed to release the helicopters in a consistent manner, and random assignment ensures that any natural differences in release technique were distributed evenly across all treatments.
+To reduce the possibility of ordering effects, we randomized the
+sequence of the sixteen design combinations before beginning data
+collection. After establishing this order, we also randomized which
+thrower completed each drop. Both throwers aimed to release the
+helicopters in a consistent manner, and random assignment ensures that
+any natural differences in release technique were distributed evenly
+across all treatments.
 
-We treated thrower as a blocking variable. Although using a single thrower would theoretically eliminate person-to-person variation, it would also require one individual to perform all 96 drops. That workload increases the likelihood of fatigue or gradual shifts in release technique, which can introduce time-related variability that is difficult to control. We judged this within-person drift to be a greater risk than the small, consistent differences that might exist between two people. Because both project members were involved in data collection, blocking was the appropriate design choice. By structuring the experiment so that each thrower completed drops for every design combination, we created a fully crossed block that allowed us to account for person-specific differences directly and improve the precision of the estimated factor effects.
+We treated thrower as a blocking variable. Although using a single
+thrower would theoretically eliminate person-to-person variation, it
+would also require one individual to perform all 96 drops. That workload
+increases the likelihood of fatigue or gradual shifts in release
+technique, which can introduce time-related variability that is
+difficult to control. We judged this within-person drift to be a greater
+risk than the small, consistent differences that might exist between two
+people. Because both project members were involved in data collection,
+blocking was the appropriate design choice. By structuring the
+experiment so that each thrower completed drops for every design
+combination, we created a fully crossed block that allowed us to account
+for person-specific differences directly and improve the precision of
+the estimated factor effects.
 
-All drops were completed within a single session. While some within-session variation is possible, the number of drops per person was modest after splitting the workload, and the randomized allocation of treatments ensures that any minor temporal changes did not align with specific factor levels. We did not observe systematic shifts in flight time over the course of the session, so we treated within-session variation as negligible.
+All drops were completed within a single session. While some
+within-session variation is possible, the number of drops per person was
+modest after splitting the workload, and the randomized allocation of
+treatments ensures that any minor temporal changes did not align with
+specific factor levels. We did not observe systematic shifts in flight
+time over the course of the session, so we treated within-session
+variation as negligible.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 #| label: load-packages
@@ -65,7 +100,14 @@ df <- data |>
 
 ## Question 1
 
-To identify which design factors influence flight time, we first examined the distributions of flight times across the two levels of each factor. The main effect boxplots below show a clear upward shift for factor A, with level 1 producing noticeably longer flights than level 0. Factor D shows the opposite pattern, with shorter flights at level 1. In contrast, factors B and C display only small differences between levels, and the variation within each level is larger than any apparent shift between them.
+To identify which design factors influence flight time, we first
+examined the distributions of flight times across the two levels of each
+factor. The main effect boxplots below show a clear upward shift for
+factor A, with level 1 producing noticeably longer flights than level 0.
+Factor D shows the opposite pattern, with shorter flights at level 1. In
+contrast, factors B and C display only small differences between levels,
+and the variation within each level is larger than any apparent shift
+between them.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 #| label: main-effects
@@ -95,7 +137,17 @@ df |>
   )
 ```
 
-We then formalized these patterns using a linear model that included all four design factors while blocking on thrower. A check of the model assumptions shows that the diagnostics are acceptable: the residuals vs. fitted plot shows no systematic curvature, supporting the linearity assumption; the Q-Q plot follows the reference line closely aside from minor tail deviations, indicating approximate normality; and the scale-location plot suggests that the spread of residuals remains fairly constant across fitted values, indicating no strong heteroscedasticity. The constant leverage plot also shows no observations with both large residuals and high leverage, so there are no influential points that would compromise the model.
+We then formalized these patterns using a linear model that included all
+four design factors while blocking on thrower. A check of the model
+assumptions shows that the diagnostics are acceptable: the residuals vs.
+fitted plot shows no systematic curvature, supporting the linearity
+assumption; the Q-Q plot follows the reference line closely aside from
+minor tail deviations, indicating approximate normality; and the
+scale-location plot suggests that the spread of residuals remains fairly
+constant across fitted values, indicating no strong heteroscedasticity.
+The constant leverage plot also shows no observations with both large
+residuals and high leverage, so there are no influential points that
+would compromise the model.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 fit_q1 <- lm(time ~ a + b + c + d + thrower, data = df)
@@ -104,7 +156,14 @@ par(mfrow = c(2, 2))
 plot(fit_q1)
 ```
 
-The estimated effects and confidence intervals are shown in the table below. Factor A had a positive and statistically significant effect, increasing the mean flight time by about 0.22 seconds. Factor D had a negative and significant effect, decreasing the mean flight time by about 0.14 seconds. The confidence intervals for both effects were entirely away from zero. Factors B and C had small estimated effects with confidence intervals that included zero, indicating little evidence that they meaningfully affect flight time.
+The estimated effects and confidence intervals are shown in the table
+below. Factor A had a positive and statistically significant effect,
+increasing the mean flight time by about 0.22 seconds. Factor D had a
+negative and significant effect, decreasing the mean flight time by
+about 0.14 seconds. The confidence intervals for both effects were
+entirely away from zero. Factors B and C had small estimated effects
+with confidence intervals that included zero, indicating little evidence
+that they meaningfully affect flight time.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -119,18 +178,52 @@ q1_table |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-Both the exploratory plots and the fitted model point to the same conclusion. Factors A and D are the most influential design components. Factor A corresponds to rotor length, and the model indicates that longer rotors tend to increase flight time. Factor D corresponds to whether a paper clip is attached, and the negative effect estimate suggests that adding a paper clip shortens the flight. In contrast, the variables associated with leg length (factor B) and leg width (factor C) show minimal impact on flight duration under this experimental setup.
+Both the exploratory plots and the fitted model point to the same
+conclusion. Factors A and D are the most influential design components.
+Factor A corresponds to rotor length, and the model indicates that
+longer rotors tend to increase flight time. Factor D corresponds to
+whether a paper clip is attached, and the negative effect estimate
+suggests that adding a paper clip shortens the flight. In contrast, the
+variables associated with leg length (factor B) and leg width (factor C)
+show minimal impact on flight duration under this experimental setup.
 
-Although the exploratory plots and main-effects model indicate that only factors A and D meaningfully influence flight time, these conclusions rely on a model that does not include interaction terms. Because factors in a full factorial experiment may contribute through interactions even when their main effects appear small, we also compared the full interaction model to reduced models that removed each factor and all of its associated interaction terms (see Appendix for code). These nested ANOVA comparisons quantify the total contribution of each factor to model fit. Removing factor A or factor D led to substantial increases in residual error ($\Delta$adj-$R^2$ = 0.259 and 0.312, respectively), reaffirming that both factors are highly influential. Removing factors B or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.193 and 0.150), suggesting that they participate in interaction patterns even though their main effects alone were not statistically significant. All p-values for each of the nested F-tests between the full model and the models with factors involvind a, b, c, or d removed were very small (all of them smaller than .01).
-Thus, while the simple main-effects model highlights A and D as the most important design features, the broader model-comparison results show that all four factors contribute to explaining flight time to varying degrees, with D and A having the strongest overall influence. Full details and output tables for these comparisons are provided in the Appendix.
+Although the exploratory plots and main-effects model indicate that only
+factors A and D meaningfully influence flight time, these conclusions
+rely on a model that does not include interaction terms. Because factors
+in a full factorial experiment may contribute through interactions even
+when their main effects appear small, we also compared the full
+interaction model to reduced models that removed each factor and all of
+its associated interaction terms (see Appendix for code). These nested
+ANOVA comparisons quantify the total contribution of each factor to
+model fit. Removing factor A or factor D led to substantial increases in
+residual error ($\Delta$adj-$R^2$ = 0.259 and 0.312, respectively),
+reaffirming that both factors are highly influential. Removing factors B
+or C also significantly worsened the model ($\Delta$adj-$R^2$ = 0.193
+and 0.150), suggesting that they participate in interaction patterns
+even though their main effects alone were not statistically significant.
+All p-values for each of the nested F-tests between the full model and
+the models with factors involvind a, b, c, or d removed were very small
+(all of them smaller than .01). Thus, while the simple main-effects
+model highlights A and D as the most important design features, the
+broader model-comparison results show that all four factors contribute
+to explaining flight time to varying degrees, with D and A having the
+strongest overall influence. Full details and output tables for these
+comparisons are provided in the Appendix.
 
 ## Question 2
 
-We use a linear regression model to investigate this potential interaction effect between rotor length (A) and leg width (C).
+We use a linear regression model to investigate this potential
+interaction effect between rotor length (A) and leg width (C).
 
-First, we check the model assumptions of a full model with all main effects, all two-way, three-way and four-way interactions between A, B, C, D, and `thrower` as the block variable. We do so by checking the residual vs. fitted plot, Q-Q plot, scale-location plot, and residuals vs. leverage plot. 
+First, we check the model assumptions of a full model with all main
+effects, all two-way, three-way and four-way interactions between A, B,
+C, D, and `thrower` as the block variable. We do so by checking the
+residual vs. fitted plot, Q-Q plot, scale-location plot, and residuals
+vs. leverage plot.
 
-We choose to have the block variable as a fixed effect in the model since we do not expect the thrower effect to be different based on the different helicopter features.
+We choose to have the block variable as a fixed effect in the model
+since we do not expect the thrower effect to be different based on the
+different helicopter features.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -143,9 +236,24 @@ par(mfrow = c(2, 2))
 plot(fit_q2_full)
 ```
 
-Overall, the model diagnostics suggest that the linear regression model is appropriate for these data. The residuals appear to be approximately normally distributed, and the residuals vs. fitted plot shows no clear patterns that would indicate non-linearity or heteroscedasticity. The Q-Q plot further supports the normality assumption since the residuals fall close to the diagonal reference line, meaning their distribution aligns well with what we would expect under normality, with no strong skewness or unusual tail behavior. The scale-location plot also shows a fairly horizontal trend, which indicates that the variance of the residuals remains roughly constant across levels of the fitted values. While a few potential outliers are present, the constant leverage plot suggests that they do not appear to have a substantial influence on the model or meaningfully compromise the overall fit.
+Overall, the model diagnostics suggest that the linear regression model
+is appropriate for these data. The residuals appear to be approximately
+normally distributed, and the residuals vs. fitted plot shows no clear
+patterns that would indicate non-linearity or heteroscedasticity. The
+Q-Q plot further supports the normality assumption since the residuals
+fall close to the diagonal reference line, meaning their distribution
+aligns well with what we would expect under normality, with no strong
+skewness or unusual tail behavior. The scale-location plot also shows a
+fairly horizontal trend, which indicates that the variance of the
+residuals remains roughly constant across levels of the fitted values.
+While a few potential outliers are present, the constant leverage plot
+suggests that they do not appear to have a substantial influence on the
+model or meaningfully compromise the overall fit.
 
-Since we are interested in the two-way interaction between rotor length (A) and leg width (C), we fit a reduced model that includes only the main effects and all two-way interaction terms, along with the blocking variable `thrower`.
+Since we are interested in the two-way interaction between rotor length
+(A) and leg width (C), we fit a reduced model that includes only the
+main effects and all two-way interaction terms, along with the blocking
+variable `thrower`.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -155,7 +263,9 @@ fit_q2_two_way <- lm(time ~ (a + b + c + d)^2 + thrower, data = df)
 # summary(fit_q2_two_way)
 ```
 
-Then, we compare whether the model with only main effects and two-way interactions is significantly different from the full model with all interaction terms using an ANOVA test.
+Then, we compare whether the model with only main effects and two-way
+interactions is significantly different from the full model with all
+interaction terms using an ANOVA test.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -166,9 +276,18 @@ kable(anova_res, caption = "ANOVA Comparison of Reduced and Full Models") %>%
   kable_styling(full_width = FALSE, position = "center") |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
-The ANOVA test comparing the full model with all interaction terms to the reduced model with only main effects and two-way interactions yields a p-value of 0.0007. The p-value is less than 0.05, indicating that there is a significant difference between the two models, suggesting that the additional higher-order interaction terms in the full model does provide a better fit to the data. 
 
-Additionally, we fit a model with all main effects, two-way interaction effects, three-way interaction effects, and the blocking variable `thrower` to see if including the full model significantly improves the model fit compared to the three-way interaction model.
+The ANOVA test comparing the full model with all interaction terms to
+the reduced model with only main effects and two-way interactions yields
+a p-value of 0.0007. The p-value is less than 0.05, indicating that
+there is a significant difference between the two models, suggesting
+that the additional higher-order interaction terms in the full model
+does provide a better fit to the data.
+
+Additionally, we fit a model with all main effects, two-way interaction
+effects, three-way interaction effects, and the blocking variable
+`thrower` to see if including the full model significantly improves the
+model fit compared to the three-way interaction model.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -182,9 +301,16 @@ kable(anova2, caption = "ANOVA Comparison of Three-Way Interaction and Full Mode
   kable_styling(full_width = FALSE, position = "center") |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
-The ANOVA test comparing the three-way interaction model to the full model yields a p-value of 0.4837 Since the p-value is greater than 0.05, this indicates that including the four-way interaction effect does not significantly improve the model fit compared to the three-way interaction model. Therefore, we will use the three-way interaction model for further analysis.
 
-Lastly, for confirmation, we can also compare the two-way interaction model to the three-way interaction model using an ANOVA test.
+The ANOVA test comparing the three-way interaction model to the full
+model yields a p-value of 0.4837 Since the p-value is greater than 0.05,
+this indicates that including the four-way interaction effect does not
+significantly improve the model fit compared to the three-way
+interaction model. Therefore, we will use the three-way interaction
+model for further analysis.
+
+Lastly, for confirmation, we can also compare the two-way interaction
+model to the three-way interaction model using an ANOVA test.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -195,7 +321,10 @@ kable(anova3, caption = "ANOVA Comparison of Two-Way and Three-Way Interaction M
   kable_styling(full_width = FALSE, position = "center") |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
-Since p-value = 0.0003 > 0.05, this indicates that including the three-way interactions model does significantly improve the model fit compared to the two-way interaction model.
+
+Since p-value = 0.0003 \> 0.05, this indicates that including the
+three-way interactions model does significantly improve the model fit
+compared to the two-way interaction model.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -209,13 +338,30 @@ q2_table |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-Based on our regression model results above, the estimated interaction effect of AC is -0.175 with a p-value of 0.144. The estimated effect size is small and $p > 0.05$, indicating insufficient evidence to support the claim of a significant interaction effect between rotor length (A) and leg width (C) on flight time. The confidence interval for the AC interaction term also includes zero (-0.411, 0.061), further confirming that the interaction effect is not statistically significant.
+Based on our regression model results above, the estimated interaction
+effect of AC is -0.175 with a p-value of 0.144. The estimated effect
+size is small and $p > 0.05$, indicating insufficient evidence to
+support the claim of a significant interaction effect between rotor
+length (A) and leg width (C) on flight time. The confidence interval for
+the AC interaction term also includes zero (-0.411, 0.061), further
+confirming that the interaction effect is not statistically significant.
 
 ## Question 3
 
-To determine the helicopter design that maximizes flight time, we estimated the average flight time for each of the sixteen combinations of factors A through D using the three-way interaction model selected in Question 2, which provided the best overall fit.
+To determine the helicopter design that maximizes flight time, we
+estimated the average flight time for each of the sixteen combinations
+of factors A through D using the three-way interaction model selected in
+Question 2, which provided the best overall fit.
 
-We obtained these estimates using the `emmeans` package. `emmeans` computes the model-based mean for each factor combination by evaluating the fitted regression model at the specified factor levels and averaging over the blocking variable, while properly incorporating all main effects and interaction terms. We chose this method because it provides consistent and reliable predictions without repeatedly altering reference levels in the data. A comparison with the reference-level approach, described in the appendix, confirms that both methods produce the same results.
+We obtained these estimates using the `emmeans` package. `emmeans`
+computes the model-based mean for each factor combination by evaluating
+the fitted regression model at the specified factor levels and averaging
+over the blocking variable, while properly incorporating all main
+effects and interaction terms. We chose this method because it provides
+consistent and reliable predictions without repeatedly altering
+reference levels in the data. A comparison with the reference-level
+approach, described in the appendix, confirms that both methods produce
+the same results.
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
 
@@ -236,13 +382,56 @@ kable(emm_table, digits = 3,
       kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-The longest predicted flight time was obtained when A = 1, B = 1, C = 0, and D = 0, corresponding to long rotors, long legs, narrow leg width, and no paper clip. This design had an estimated mean flight time of 1.965 seconds (95% CI: 1.833, 2.097). Therefore, this combination is our recommended configuration for maximizing helicopter flight duration.
+The longest predicted flight time was obtained when A = 1, B = 1, C = 0,
+and D = 0, corresponding to long rotors, long legs, narrow leg width,
+and no paper clip. This design had an estimated mean flight time of
+1.965 seconds (95% CI: 1.833, 2.097). Therefore, this combination is our
+recommended configuration for maximizing helicopter flight duration.
 
 \newpage
 
 # Appendix
 
-To supplement our Q1 analysis, we evaluated the importance of each factor by comparing the full three-way interaction model to reduced models that omitted one factor and all interaction terms containing that factor. This approach assesses the total contribution of each factor (main effect + interactions), addressing the possibility that some factors may matter primarily through interactions even if their main effects appear small. Table A1 presents the nested ANOVA (partial F) results for these model comparisons, and Table A2 reports the corresponding changes in R² and adjusted R².
+## Data dictionary
+
+Here are the variables in our data file "STA322-project2-helicopter -
+Sheet1.csv":
+
+(Each row corresponds to one drop of a helicopter)
+
+-   combination – the factor combination of the helicopter, e.g. 1, a,
+    b, ..., abcd
+
+-   a – Rotor length (0 - low - 7.5cm, 1 - high - 8.5cm)
+
+-   b – Leg length (0 - low - 7.5cm, 1 - high - 12cm)
+
+-   c – Leg width (0 - low - 3.2cm, 1 - high - 5.0cm)
+
+-   d – Paper clip on leg (0 - low - No, 1 - high - Yes)
+
+-   thrower – person who performed the drop (kz – Katherine, ab -
+    Alayna)
+
+-   time – flight time (in seconds) for each drop
+
+-   order – the randomized sequence/order each combination of helicopter
+    was tested, e.g. helicopter with factor combination "d" was tested
+    first out of 16 combinations, so `order` = 1 for "d"
+
+-   maker – person who made the helicopter (kz – Katherine, ab - Alayna)
+
+## Additional explanation about Q1 and Q3
+
+To supplement our Q1 analysis, we evaluated the importance of each
+factor by comparing the full interaction model to reduced models that
+omitted one factor and all interaction terms containing that factor.
+This approach assesses the total contribution of each factor (main
+effect + interactions), addressing the possibility that some factors may
+matter primarily through interactions even if their main effects appear
+small. Table A1 presents the nested ANOVA (partial F) results for these
+model comparisons, and Table A2 reports the corresponding changes in R²
+and adjusted R².
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE, results = 'asis'}
 
@@ -308,9 +497,20 @@ res %>%
   kable_styling(full_width = FALSE, latex_options = "HOLD_position")
 ```
 
-These results provide the detailed evidence referred to in Q1. The nested ANOVA tests (Table A1) show how much model fit deteriorates when a factor and all its associated interactions are removed, and the $R^2$ summaries (Table A2) quantify the corresponding loss in explained variability.
+These results provide the detailed evidence referred to in Q1. The
+nested ANOVA tests (Table A1) show how much model fit deteriorates when
+a factor and all its associated interactions are removed, and the $R^2$
+summaries (Table A2) quantify the corresponding loss in explained
+variability.
 
-For Question 3, we also used a manual approach that involved changing factor reference levels and extracting the model intercept to obtain the predicted means. This method produced the same results as `emmeans`, which confirms that both procedures are consistent with the fitted model. We included the manual approach to verify our predictions, but `emmeans` is more practical in application because it computes all combinations directly and avoids the repeated refitting required by the manual method.
+For Question 3, we also used a manual approach that involved changing
+factor reference levels and extracting the model intercept to obtain the
+predicted means. This method produced the same results as `emmeans`,
+which confirms that both procedures are consistent with the fitted
+model. We included the manual approach to verify our predictions, but
+`emmeans` is more practical in application because it computes all
+combinations directly and avoids the repeated refitting required by the
+manual method.
 
 <!-- PREVIOUS -->
 
@@ -489,6 +689,7 @@ estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
 ## Code
 
 Setup
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 #| label: load-packages-code
 
@@ -502,6 +703,7 @@ library(tidyr)
 ```
 
 Load data
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 #| label: load-data-code
 
@@ -509,6 +711,7 @@ data <- read_csv("STA322-project2-helicopter - Sheet1.csv")
 ```
 
 Data wrangling
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 #| label: data-wrangling-code
 
@@ -531,6 +734,7 @@ df <- data |>
 ### Q1
 
 Main effects box plot
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 #| label: main-effects-code
 
@@ -560,6 +764,7 @@ df |>
 ```
 
 Fit main effects model with blocked variable and check model assumptions
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 fit_q1 <- lm(time ~ a + b + c + d + thrower, data = df)
 
@@ -568,6 +773,7 @@ plot(fit_q1)
 ```
 
 Display main effects model results
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # summary(fit_q1)
@@ -582,6 +788,7 @@ q1_table |>
 ```
 
 Supplementary analysis
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Full model from Q2
@@ -649,6 +856,7 @@ res %>%
 ### Q2
 
 Fit full model and check model assumptions
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Make linear model with all effects plus block variable
@@ -661,6 +869,7 @@ plot(fit_q2_full)
 ```
 
 Fit reduced model with main effects and two-way interactions
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Fit reduced model with main effects and two-way interactions
@@ -670,6 +879,7 @@ fit_q2_two_way <- lm(time ~ (a + b + c + d)^2 + thrower, data = df)
 ```
 
 ANOVA to compare full model with two-way interaction model
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # ANOVA test to compare full model and reduced model
@@ -681,6 +891,7 @@ kable(anova_res, caption = "ANOVA Comparison of Reduced and Full Models") %>%
 ```
 
 Fit three-way interaction model; ANOVA to compare with full model
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Fit model with main effects, two-way and three-way interactions
@@ -695,7 +906,9 @@ kable(anova2, caption = "ANOVA Comparison of Three-Way Interaction and Full
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-ANOVA to compare two-way interaction model with three-way interaction model
+ANOVA to compare two-way interaction model with three-way interaction
+model
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # ANOVA test to compare three-way interaction model and two way model
@@ -708,6 +921,7 @@ kable(anova3, caption = "ANOVA Comparison of Two-Way and Three-Way
 ```
 
 Display final model (model with three-way interactions) output
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 q2_table <- tidy(fit_q2_three_way, conf.int = TRUE) |>
@@ -720,10 +934,11 @@ q2_table |>
   kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-
 ### Q3
 
-Get estimated average flight time for all 16 factor combinations using `emmeans`
+Get estimated average flight time for all 16 factor combinations using
+`emmeans`
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Get estimated marginal means for all 16 combinations
@@ -744,7 +959,9 @@ kable(emm_table, digits = 3,
       kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-Manually calculated the average flight time for factor combination (1), with factors (-, -, -, -):
+Manually calculated the average flight time for factor combination (1),
+with factors (-, -, -, -):
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 # Get average flight time for factor combination (1)
@@ -760,7 +977,9 @@ cat("95% CI: (", round(avg_flight_time_1$conf.low, 3), ", ",
     round(avg_flight_time_1$conf.high, 3), ") seconds \n")
 ```
 
-Write function to calculate the average flight times for the 15 other combinations
+Write function to calculate the average flight times for the 15 other
+combinations
+
 ```{r echo = TRUE, eval = FALSE, message = FALSE, warning = FALSE}
 
 estimate_avg_flight_time <- function(df_modified, combination_name, factors_desc) {
@@ -907,4 +1126,3 @@ df_abcd <- df |>
   )
 estimate_avg_flight_time(df_abcd, "abcd", "(+, +, +, +)")
 ```
-
